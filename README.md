@@ -1,4 +1,4 @@
-#Caso propuesto: Gestión de Mantenimiento de Equipos Médicos 
+# Caso propuesto: Gestión de Mantenimiento de Equipos Médicos 
 ## 1. Contexto del negocio
 
 VidaSana es un centro de salud ambulatorio organizado en tres áreas: consultorios médicos, imágenes y rehabilitación. Cada área depende de equipos médicos específicos para operar.
