@@ -1,5 +1,5 @@
 # Caso propuesto: Gestión de Mantenimiento de Equipos Médicos 
-## 1. Contexto del negocio
+## Contexto del negocio
 
 VidaSana es un centro de salud ambulatorio organizado en tres áreas: consultorios médicos, imágenes y rehabilitación. Cada área depende de equipos médicos específicos para operar.
 
@@ -11,100 +11,90 @@ La Jefatura de Ingeniería Biomédica necesita responder preguntas como:
 
 Se solicita diseñar una base de datos que centralice esta información y permita calcular indicadores de disponibilidad, confiabilidad y costo de mantenimiento.
 
-## 2. Áreas y salas de atención
+## 1. Área
 
-VidaSana organiza sus espacios en tres áreas: consultorios, imágenes y rehabilitación.
+Código único y nombre. Una sola área agrupa varias salas.
 
-Para cada área se registra: código único, nombre y responsable.
+## 2. Sala
 
-Para cada sala se registra: código único, área a la que pertenece, ubicación, capacidad de atención simultánea y estado (activo / en mantenimiento / inactivo).
+Código único, área a la que pertenece, ubicación y estado (activo / en mantenimiento / inactivo). Una sala pertenece a una única área.
 
-Una sala pertenece a una única área; un área puede tener varias salas.
+## 3. Equipo médico
 
-## 3. Equipos médicos
+Código patrimonial único, denominación, categoría (define a qué área da soporte: diagnóstico, imágenes o rehabilitación), marca, modelo, número de serie, sala asignada actualmente, fecha de adquisición, vida útil estimada, valor de adquisición, estado actual (operativo / en mantenimiento / fuera de servicio / de baja) y criticidad (alta / media / baja).
 
-Los equipos se agrupan en categorías según el área a la que dan soporte:
-
-- **Diagnóstico** (consultorios): tensiómetros, linterna de examen clínico, electrocardiógrafos, balanzas, martillo de reflejos, pantoscopio, lámpara de examen clínico.
+Categorías por área:
+- **Diagnóstico**: tensiómetros, linterna de examen clínico, electrocardiógrafos, balanzas, martillo de reflejos, pantoscopio, lámpara de examen clínico.
 - **Imágenes**: ecógrafo estacionario, equipo de rayos X, negatoscopio de 2 campos.
 - **Rehabilitación**: bicicleta ergométrica, tanque de compresas calientes, tanque de compresas frías, lámpara de rayos ultravioleta, equipo de terapia de onda corta, equipo de terapia con ultrasonido, equipo de magnetoterapia, estimulador nervioso transcutáneo, equipo de electroterapia.
 
-Cada equipo pertenece a una única categoría, y cada categoría a una única área.
+## 4. Historial de ubicaciones de equipo
 
-Para cada equipo se registra: código patrimonial único, denominación, categoría, marca, modelo, número de serie, sala asignada, fecha de adquisición, vida útil estimada, valor de adquisición, estado actual (operativo / en mantenimiento / fuera de servicio / de baja) y criticidad (alta / media / baja).
+Equipo, sala anterior (vacía si es la primera ubicación del equipo), sala nueva (siempre obligatoria y distinta de la anterior), fecha del cambio y motivo. Registra cada reubicación de un equipo entre salas, incluso entre áreas distintas, sin perder la ubicación actual.
 
-Un equipo puede cambiar de sala a lo largo del tiempo, incluso entre áreas distintas. Debe conservarse el historial de reubicaciones.
+## 5. Plan de mantenimiento preventivo
 
-## 4. Mantenimiento preventivo
+Equipo asociado, frecuencia (mensual, trimestral, semestral, anual), actividades a realizar, fecha de inicio, fecha programada de la próxima ejecución, costo estimado y estado (activo / suspendido). Un equipo puede tener varios planes a lo largo de su vida útil.
 
-Un plan de mantenimiento preventivo define cada cuánto tiempo debe revisarse un equipo, independientemente de si ha fallado.
+## 6. Ejecución de mantenimiento preventivo
 
-Para cada plan se registra: equipo asociado, frecuencia (mensual, trimestral, semestral, anual), actividades a realizar, fecha de inicio, fecha de la última ejecución, fecha programada de la próxima ejecución, técnico o proveedor responsable, costo estimado y estado (activo / suspendido).
+Plan al que corresponde, técnico que la realizó, fecha, hallazgos, costo real y estado (realizado / reprogramado / no realizado). Un plan puede tener varias ejecuciones a lo largo del tiempo.
 
-Un equipo puede tener varios planes a lo largo de su vida útil.
+## 7. Incidencia
 
-Cada ejecución real se registra con: plan al que corresponde, fecha, duración, técnico que la realizó, hallazgos, costo real y estado (realizado / reprogramado / no realizado).
+Equipo afectado, fecha y hora de reporte, persona que reporta, cargo de quien reporta, descripción de la falla, prioridad (urgente / media / baja) y estado (reportada / en atención / resuelta / cerrada). Un equipo puede tener varias incidencias; una incidencia corresponde a un único equipo.
 
-Un plan puede tener varias ejecuciones a lo largo del tiempo.
+## 8. Parada de equipo
 
-## 5. Incidencias y mantenimiento correctivo
+Tipo de parada (programada / no programada), fecha/hora de inicio y fecha/hora de fin. Se origina exclusivamente por una **incidencia** o por una **ejecución de mantenimiento preventivo** (nunca por ambas a la vez ni por ninguna), lo que permite tratar de forma unificada tanto las paradas imprevistas como las programadas.
 
-Cuando un equipo falla, se registra una incidencia con: equipo afectado, fecha y hora de reporte, persona que reporta, sala donde ocurre, descripción de la falla, prioridad (urgente / media / baja), tipo de mantenimiento correctivo requerido, fecha y hora de atención, técnico o proveedor que atendió, diagnóstico técnico, repuestos utilizados (si corresponde), costo de la reparación (si corresponde), fecha/hora de inicio y de restablecimiento del servicio, y estado (reportada / en atención / resuelta / cerrada).
+## 9. Mantenimiento correctivo
 
-Un equipo puede tener varias incidencias; una incidencia corresponde a un único equipo.
+Parada de equipo asociada, técnico interno que atiende (siempre obligatorio, es quien atiende primero), técnico externo (opcional — solo si el técnico interno escala el caso a un proveedor), acciones realizadas, fecha de atención, costo total y estado.
 
-Cuando un equipo queda fuera de servicio, deben poder identificarse las citas de esa sala afectadas durante ese período, indicando si fueron reprogramadas o canceladas.
+## 10. Repuesto
 
-## 6. Repuestos y proveedores
+Código, descripción, proveedor habitual, costo unitario, stock disponible y stock mínimo (para alertas de reposición).
 
-Para cada repuesto se registra: código, descripción, categoría de equipo compatible, proveedor habitual, costo unitario, stock disponible y stock mínimo.
+## 11. Cuantificación de repuestos
 
-Para cada proveedor se registra: código, razón social, RUC, tipo de servicio (mantenimiento preventivo, correctivo, ambos, venta de repuestos), tiempo de respuesta contractual y estado (activo / inactivo).
+Ejecución preventiva o mantenimiento correctivo al que pertenece (exclusivamente uno de los dos), repuesto utilizado, cantidad y costo unitario en ese momento. Registra cada uso individual de un repuesto, tanto en mantenimientos preventivos como correctivos.
 
-Una incidencia puede requerir uno o varios repuestos, y un repuesto puede usarse en varias incidencias. Un plan de mantenimiento preventivo también puede requerir repuestos programados (por ejemplo, cambio periódico de sensores o baterías).
+## 12. Proveedor
 
-## 7. Técnicos
+Código, razón social, RUC y tiempo de respuesta contractual.
 
-Para cada técnico (interno o de proveedor externo) se registra: código, nombre completo, especialidad (electromedicina, imagenología, equipos de rehabilitación, etc.), tipo (interno / externo), proveedor al que pertenece (si es externo) y estado (activo / inactivo).
+## 13. Técnico
 
-Un técnico puede atender varias incidencias y participar en varios planes de mantenimiento preventivo. Una incidencia puede ser atendida por más de un técnico a lo largo de su ciclo de vida (por ejemplo, diagnóstico y reparación por técnicos distintos).
+Código, nombre completo, especialidad (electromedicina, imagenología, equipos de rehabilitación, etc.), tipo (interno / externo), proveedor al que pertenece (si es externo) y estado (activo / inactivo). Un técnico interno no está asociado a ningún proveedor.
 
-## 8. Citas y afectación del servicio
+## 14. Reprogramación de cita por parada de equipo
 
-VidaSana programa citas en sus distintas áreas (consulta, estudio de imagen, sesión de rehabilitación).
+Parada relacionada, sala, fecha y hora original de la cita, y fecha y hora nueva (si fue reprogramada; si quedó cancelada, este campo permanece vacío). Una parada de equipo puede afectar cero, una o varias citas.
 
-Para cada cita se registra: sala asignada, fecha y hora, tipo de atención y estado (programada / atendida / no asistió / cancelada / reprogramada).
-
-Cuando una incidencia deja un equipo fuera de servicio, debe poder identificarse qué citas de la sala asociada quedaron afectadas, y si fueron reprogramadas o canceladas.
-
-## 9. Información temporal
+## 15. Información temporal
 
 El modelo debe permitir analizar fallas, mantenimientos y disponibilidad por período: día, semana, mes, trimestre, año.
 
 También debe permitir seguir la evolución de: incidencias por equipo, categoría y área; cumplimiento del mantenimiento preventivo; tiempo de indisponibilidad por sala y área; costos de mantenimiento; consumo de repuestos; y desempeño de proveedores y técnicos.
 
-## 10. Requerimientos de análisis
+## 16. Requerimientos de análisis
 
-El modelo debe permitir responder preguntas como:
+¿Qué equipos tienen más incidencias en un período dado? ¿Cuál es el tiempo promedio de indisponibilidad por equipo, sala o área? ¿Qué porcentaje de mantenimientos preventivos se cumplió según lo programado? ¿Qué proveedor tiene el menor tiempo de respuesta? ¿Cuál es el costo total de mantenimiento (mano de obra + repuestos) por equipo, categoría y área? ¿Qué área acumula mayor indisponibilidad de equipos críticos? ¿Cómo evoluciona mensualmente la cantidad de incidencias por tipo de equipo? ¿Qué equipos están próximos a cumplir su vida útil? ¿Qué repuestos se consumen con mayor frecuencia y en qué equipos? ¿Qué técnicos resuelven más correctivos y en qué tiempo promedio? ¿Qué porcentaje de correctivos requirió escalamiento a un técnico externo? ¿Cuántas citas fueron canceladas o reprogramadas por fallas, y en qué área? ¿Qué equipos generan mayor costo acumulado respecto a su valor de adquisición? ¿Qué categoría presenta menor confiabilidad (mayor tasa de fallas por unidad de tiempo)?
 
-¿Qué equipos tienen más incidencias en un período dado? ¿Cuál es el tiempo promedio de indisponibilidad por equipo, sala o área? ¿Qué porcentaje de mantenimientos preventivos se cumplió según lo programado? ¿Qué proveedor tiene el menor tiempo de respuesta? ¿Cuál es el costo total de mantenimiento por equipo, categoría y área? ¿Qué área acumula mayor indisponibilidad de equipos críticos? ¿Cómo evoluciona mensualmente la cantidad de incidencias por tipo de equipo? ¿Qué equipos están próximos a cumplir su vida útil? ¿Qué repuestos se consumen con mayor frecuencia y en qué equipos? ¿Qué técnicos resuelven más incidencias y en qué tiempo promedio? ¿Cuántas citas fueron canceladas o reprogramadas por fallas, y en qué área? ¿Qué equipos generan mayor costo acumulado respecto a su valor de adquisición? ¿Qué categoría presenta menor confiabilidad (mayor tasa de fallas por unidad de tiempo)?
-
-## 11. Reglas de negocio
+## 17. Reglas de negocio
 
 - Un área puede tener varias salas; una sala pertenece a una única área.
-- Un equipo pertenece a una única sala en un momento dado, pero puede ser reubicado en el tiempo.
+- Un equipo pertenece a una única sala en un momento dado, pero puede ser reubicado en el tiempo; cada reubicación queda registrada con sala anterior (nula solo en la primera ubicación) y sala nueva (siempre obligatoria y distinta de la anterior).
 - Un equipo pertenece a una única categoría; una categoría pertenece a una única área.
-- Un equipo puede tener varios planes de mantenimiento preventivo a lo largo de su vida útil.
-- Un plan de mantenimiento preventivo puede tener varias ejecuciones.
+- Un equipo puede tener varios planes de mantenimiento preventivo a lo largo de su vida útil; un plan puede tener varias ejecuciones.
 - Un equipo puede generar varias incidencias; una incidencia corresponde a un único equipo.
-- Una incidencia puede ser atendida por uno o varios técnicos.
-- Una incidencia puede requerir cero, uno o varios repuestos; un repuesto puede usarse en varias incidencias.
-- Un plan de mantenimiento preventivo puede requerir repuestos programados.
-- Un técnico puede participar en varias incidencias y varios mantenimientos preventivos.
-- No toda incidencia requiere un repuesto.
-- Una cita puede verse afectada, como máximo, por la incidencia vigente en su sala durante su horario programado.
-- No todas las citas se ven afectadas por incidencias.
-- La información histórica (incidencias, mantenimientos, reubicaciones, citas) no debe perderse al cambiar los datos actuales del equipo, la sala o el proveedor.
+- Una incidencia genera una parada de equipo; una ejecución de mantenimiento preventivo también puede genera una parada de equipo. Una parada de equipo proviene exclusivamente de una incidencia o de una ejecución preventiva, nunca de ambas ni de ninguna.
+- Una parada de equipo puede requerir cero o un mantenimiento correctivo.
+- Todo mantenimiento correctivo tiene un técnico interno obligatorio; el técnico externo solo se registra si el caso fue escalado.
+- Una ejecución de mantenimiento preventivo y un mantenimiento correctivo pueden requerir cero, uno o varios repuestos; un repuesto puede usarse en muchas ejecuciones y correctivos distintos. Cada registro de uso pertenece exclusivamente a una ejecución preventiva o a un correctivo, nunca a ambos.
+- Un técnico puede no estar asociado a ningún proveedor (técnico interno); un repuesto puede no tener todavía tiene un proveedor habitual asignado.
+- Un proveedor puede estar asociado a varios técnicos externos y suministrar varios repuestos.
+- Una parada de equipo puede afectar cero, una o varias citas.
+- La información histórica (incidencias, paradas, mantenimientos, reubicaciones, reprogramaciones) no debe perderse al cambiar los datos actuales del equipo, la sala o el proveedor.
 - El estado actual de un equipo debe poder determinarse a partir de su historial de incidencias y mantenimientos.
-- Un proveedor puede estar asociado a varios técnicos externos.
-- Un repuesto puede tener un proveedor habitual, pero el histórico de compras puede registrar proveedores distintos en el tiempo.
