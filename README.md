@@ -50,7 +50,7 @@ Tipo de parada (programada / no programada), fecha/hora de inicio y fecha/hora d
 
 ## 9. Mantenimiento correctivo
 
-Parada de equipo asociada, técnico interno que atiende (siempre obligatorio, es quien atiende primero), técnico externo (opcional — solo si el técnico interno escala el caso a un proveedor), acciones realizadas, fecha de atención, costo total y estado.
+Parada de equipo asociada, técnico interno que atiende (siempre obligatorio, es quien atiende primero), técnico externo (opcional — solo si el técnico interno escala el caso a un proveedor), acciones realizadas, fecha de atención, costo total y estado (pendiente / en atención / resuelto). Si el estado es "pendiente", las acciones, la fecha de atención y el costo total permanecen vacíos, ya que el correctivo aún no ha sido atendido.
 
 ## 10. Repuesto
 
@@ -70,7 +70,7 @@ Código, nombre completo, especialidad (electromedicina, imagenología, equipos 
 
 ## 14. Reprogramación de cita por parada de equipo
 
-Parada relacionada, sala, fecha y hora original de la cita, y fecha y hora nueva (si fue reprogramada; si quedó cancelada, este campo permanece vacío). Una parada de equipo puede afectar cero, una o varias citas.
+Parada relacionada, sala, fecha y hora original de la cita, y fecha y hora nueva (si fue reprogramada; si quedó cancelada, este campo permanece vacío). Una parada de equipo puede afectar cero, una o varias citas. Una parada de equipo puede afectar cero, una o varias citas. Solo se registra una reprogramación cuando la parada ya tiene fecha de fin definida; mientras el equipo siga fuera de servicio, las citas afectadas quedan pendientes de reprogramar.
 
 ## 15. Información temporal
 
@@ -89,11 +89,11 @@ También debe permitir seguir la evolución de: incidencias por equipo, categor�
 - Un equipo pertenece a una única categoría; una categoría pertenece a una única área.
 - Un equipo puede tener varios planes de mantenimiento preventivo a lo largo de su vida útil; un plan puede tener varias ejecuciones.
 - Un equipo puede generar varias incidencias; una incidencia corresponde a un único equipo.
-- Una incidencia genera una parada de equipo; una ejecución de mantenimiento preventivo también puede genera una parada de equipo. Una parada de equipo proviene exclusivamente de una incidencia o de una ejecución preventiva, nunca de ambas ni de ninguna.
+- Una incidencia genera una parada de equipo; una ejecución de mantenimiento preventivo también puede generar una parada de equipo.Una parada de equipo proviene exclusivamente de una incidencia o de una ejecución preventiva, nunca de ambas ni de ninguna.
 - Una parada de equipo puede requerir cero o un mantenimiento correctivo.
 - Todo mantenimiento correctivo tiene un técnico interno obligatorio; el técnico externo solo se registra si el caso fue escalado.
 - Una ejecución de mantenimiento preventivo y un mantenimiento correctivo pueden requerir cero, uno o varios repuestos; un repuesto puede usarse en muchas ejecuciones y correctivos distintos. Cada registro de uso pertenece exclusivamente a una ejecución preventiva o a un correctivo, nunca a ambos.
-- Un técnico puede no estar asociado a ningún proveedor (técnico interno); un repuesto puede no tener todavía tiene un proveedor habitual asignado.
+- Un técnico puede no estar asociado a ningún proveedor (técnico interno); un repuesto puede no tener todavía un proveedor habitual asignado.
 - Un proveedor puede estar asociado a varios técnicos externos y suministrar varios repuestos.
 - Una parada de equipo puede afectar cero, una o varias citas.
 - La información histórica (incidencias, paradas, mantenimientos, reubicaciones, reprogramaciones) no debe perderse al cambiar los datos actuales del equipo, la sala o el proveedor.
