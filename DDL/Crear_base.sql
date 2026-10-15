@@ -33,7 +33,7 @@ CREATE TABLE PROVEEDOR (
 );
 
 --- TECNICO
---- codigo_proveedor (antes id_proveedor) ahora referencia PROVEEDOR(codigo)
+
 
 CREATE TABLE TECNICO (
 	id INT IDENTITY(1,1) PRIMARY KEY,
@@ -53,7 +53,7 @@ CREATE TABLE TECNICO (
 );
 
 --- REPUESTO
---- codigo_proveedor (antes id_proveedor) ahora referencia PROVEEDOR(codigo)
+
 
 CREATE TABLE REPUESTO (
 	id INT IDENTITY(1,1) PRIMARY KEY,
@@ -67,7 +67,7 @@ CREATE TABLE REPUESTO (
 );
 
 --- SALA
---- codigo_area (antes id_area) ahora referencia AREA(codigo)
+
 
 CREATE TABLE SALA (
 	id INT IDENTITY(1,1) PRIMARY KEY,
@@ -80,28 +80,26 @@ CREATE TABLE SALA (
 );
 
 --- EQUIPO_MEDICO
---- codigo_sala (antes id_sala) ahora referencia SALA(codigo)
+
 
 CREATE TABLE EQUIPO_MEDICO (
-	codigo_patrimonial VARCHAR(20) PRIMARY KEY,
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	codigo_patrimonial VARCHAR(20) NOT NULL UNIQUE,
 	denominacion VARCHAR(155) NOT NULL,
 	marca VARCHAR(100) NULL,
 	modelo VARCHAR(100) NULL,
 	serie VARCHAR(100) NULL,
 	categoria VARCHAR(100) NOT NULL,
-	codigo_sala CHAR(6) NOT NULL,
 	fecha_adquision DATE NOT NULL,
 	vida_util INT NULL,
 	precio_adquision DECIMAL(12,2) NULL,
 	estado VARCHAR(25) NOT NULL,
 	criticidad VARCHAR(10) NOT NULL,
-	CONSTRAINT FK_equipo_sala FOREIGN KEY (codigo_sala) REFERENCES SALA(codigo),
 	CONSTRAINT CK_equipo_estado CHECK (estado IN ('operativo','en_mantenimiento','fuera_de_servicio','de_baja')),
 	CONSTRAINT CK_equipo_criticidad CHECK (criticidad IN ('alta','media','baja'))
 );
 
 --- PLAN_MANTENIMIENTO_PREVENTIVO
---- codigo_equipo (antes id_equipo) ahora nombrado para dejar claro que ya era una referencia por código (codigo_patrimonial)
 
 CREATE TABLE PLAN_MANTENIMIENTO_PREVENTIVO (
 	id INT IDENTITY(1,1) PRIMARY KEY,
@@ -119,23 +117,26 @@ CREATE TABLE PLAN_MANTENIMIENTO_PREVENTIVO (
 );
 
 --- EJECUCCION_MANTENIMIENTO_PREVENTIVO
---- ya usaba codigo_plan_mantenimiento y codigo_tecnico (sin cambios)
 
 CREATE TABLE EJECUCCION_MANTENIMIENTO_PREVENTIVO (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	codigo_plan_mantenimiento CHAR(6) NOT NULL,
 	codigo_tecnico CHAR(6) NOT NULL,
-	fecha_ejecuccion DATETIME NOT NULL,
+	fecha_programada DATETIME NOT NULL,
+	fecha_ejecuccion DATETIME NULL,
 	costo_real DECIMAL(12,2) NULL,
 	hallazgos VARCHAR(500) NULL,
 	estado VARCHAR(25) NOT NULL,
 	CONSTRAINT FK_ejecuccion_plan FOREIGN KEY (codigo_plan_mantenimiento) REFERENCES PLAN_MANTENIMIENTO_PREVENTIVO(codigo),
 	CONSTRAINT FK_ejecuccion_tecnico FOREIGN KEY (codigo_tecnico) REFERENCES TECNICO(codigo),
-	CONSTRAINT CK_ejecuccion_estado CHECK (estado IN ('realizado','reprogramado','no_realizado'))
+	CONSTRAINT CK_ejecuccion_estado CHECK (estado IN ('realizado','reprogramado','no_realizado')),
+	CONSTRAINT CK_ejecuccion_fecha_segun_estado CHECK (
+		(estado = 'realizado' AND fecha_ejecuccion IS NOT NULL)
+		OR (estado <> 'realizado' AND fecha_ejecuccion IS NULL)
+	)
 );
 
 --- INCIDENCIA
---- codigo_equipo (antes id_equipo) referencia EQUIPO_MEDICO(codigo_patrimonial)
 
 CREATE TABLE INCIDENCIA (
 	id INT IDENTITY(1,1) PRIMARY KEY,
@@ -152,8 +153,6 @@ CREATE TABLE INCIDENCIA (
 );
 
 --- PARADA_DE_EQUIPO
---- SIN CAMBIOS: INCIDENCIA y EJECUCCION_MANTENIMIENTO_PREVENTIVO no tienen columna "codigo" propia,
---- solo su id autonumerico, asi que la referencia se mantiene por id.
 
 CREATE TABLE PARADA_DE_EQUIPO (
 	id INT IDENTITY(1,1) PRIMARY KEY,
@@ -181,26 +180,32 @@ CREATE UNIQUE INDEX UQ_parada_ejecuccion
 GO
 
 --- MANTENIMIENTO_CORRECTIVO
---- id_parada SIN CAMBIOS (PARADA_DE_EQUIPO no tiene "codigo" propio);
---- codigo_tecnico_interno / codigo_tecnico_externo sin cambios (ya usaban codigo)
 
 CREATE TABLE MANTENIMIENTO_CORRECTIVO (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	id_parada INT NOT NULL UNIQUE,
-	codigo_tecnico_interno CHAR(6) NOT NULL,
-	codigo_tecnico_externo CHAR(6) NULL,
-	acciones VARCHAR(500) NULL,
-	fecha_atencion DATETIME NULL,
 	costo_total DECIMAL(12,2) NULL,
 	estado VARCHAR(25) NOT NULL,
 	CONSTRAINT FK_correctivo_parada FOREIGN KEY (id_parada) REFERENCES PARADA_DE_EQUIPO(id),
-	CONSTRAINT FK_correctivo_tecnico_interno FOREIGN KEY (codigo_tecnico_interno) REFERENCES TECNICO(codigo),
-	CONSTRAINT FK_correctivo_tecnico_externo FOREIGN KEY (codigo_tecnico_externo) REFERENCES TECNICO(codigo),
 	CONSTRAINT CK_correctivo_estado CHECK (estado IN ('pendiente','en_atencion','resuelto'))
 );
 
+CREATE TABLE ATENCION_CORRECTIVO (
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	id_mantenimiento_correctivo INT NOT NULL,
+	orden INT NOT NULL,
+	codigo_tecnico CHAR(6) NOT NULL,
+	fecha_atencion DATETIME NOT NULL,
+	acciones VARCHAR(500) NULL,
+	resultado VARCHAR(20) NOT NULL,
+	CONSTRAINT FK_atencion_correctivo FOREIGN KEY (id_mantenimiento_correctivo) REFERENCES MANTENIMIENTO_CORRECTIVO(id),
+	CONSTRAINT FK_atencion_tecnico FOREIGN KEY (codigo_tecnico) REFERENCES TECNICO(codigo),
+	CONSTRAINT CK_atencion_resultado CHECK (resultado IN ('resuelto','escalado')),
+	CONSTRAINT CK_atencion_orden CHECK (orden >= 1),
+	CONSTRAINT UQ_atencion_orden_correctivo UNIQUE (id_mantenimiento_correctivo, orden)
+);
+
 --- REPROGRAMACION_CITA_POR_PARADA_DE_EQUIPO
---- codigo_sala (antes id_sala) ahora referencia SALA(codigo); id_parada sin cambios
 
 CREATE TABLE REPROGRAMACION_CITA_POR_PARADA_DE_EQUIPO (
 	id INT IDENTITY(1,1) PRIMARY KEY,
@@ -213,13 +218,12 @@ CREATE TABLE REPROGRAMACION_CITA_POR_PARADA_DE_EQUIPO (
 );
 
 --- HISTORIAL_UBICACIONES_EQUIPO
---- codigo_equipo, codigo_sala_anterior, codigo_sala_actual (antes id_equipo, id_sala_anterior, id_sala_actual)
 
 CREATE TABLE HISTORIAL_UBICACIONES_EQUIPO (
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	codigo_equipo VARCHAR(20) NOT NULL,
 	codigo_sala_anterior CHAR(6) NULL,
-	codigo_sala_actual CHAR(6) NOT NULL,
+	codigo_sala_actual CHAR(6) not NULL,
 	fecha_cambio DATE NOT NULL,
 	motivo VARCHAR(255) NULL,
 	CONSTRAINT FK_historial_equipo FOREIGN KEY (codigo_equipo) REFERENCES EQUIPO_MEDICO(codigo_patrimonial),
@@ -229,9 +233,6 @@ CREATE TABLE HISTORIAL_UBICACIONES_EQUIPO (
 );
 
 --- CUANTIFICACION_DE_REPUESTOS
---- codigo_repuesto (antes id_repuesto) ahora referencia REPUESTO(codigo);
---- id_ejecucion_mantenimiento_preventivo e id_mantenimiento_correctivo SIN CAMBIOS
---- (ninguna de esas dos tablas tiene columna "codigo" propia)
 
 CREATE TABLE CUANTIFICACION_DE_REPUESTOS (
 	id INT IDENTITY(1,1) PRIMARY KEY,
@@ -253,7 +254,6 @@ CREATE TABLE CUANTIFICACION_DE_REPUESTOS (
 GO
 
 -- TRIGGER: toda incidencia GENERA automáticamente su parada de equipo
--- (trabaja con id.INCIDENCIA, sin cambios: INCIDENCIA no tiene "codigo" propio)
 
 CREATE TRIGGER TRG_incidencia_genera_parada
 ON INCIDENCIA
@@ -270,5 +270,27 @@ BEGIN
 		i.fecha_de_reporte,
 		NULL
 	FROM inserted i;
+END;
+GO
+
+-- TRIGGER ATENCION MANTENIMIENTO CORRECTIVO: visita 1 siempre debe ser de un tecnico interno; de la 2 en adelante, externo
+
+CREATE TRIGGER TRG_atencion_orden_tipo_tecnico
+ON ATENCION_CORRECTIVO
+AFTER INSERT, UPDATE
+AS
+BEGIN
+	SET NOCOUNT ON;
+	IF EXISTS (
+		SELECT 1
+		FROM inserted i
+		JOIN TECNICO t ON t.codigo = i.codigo_tecnico
+		WHERE (i.orden = 1 AND t.tipo <> 'interno')
+		   OR (i.orden > 1 AND t.tipo <> 'externo')
+	)
+	BEGIN
+		RAISERROR('La visita 1 debe ser de un tecnico interno; las siguientes, de un tecnico externo.', 16, 1);
+		ROLLBACK TRANSACTION;
+	END
 END;
 GO
